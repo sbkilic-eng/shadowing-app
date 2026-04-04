@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Shadowing Ultra Pro v4</title>
+<title>Shadowing Ultra Pro v4.2</title>
 <style>
   :root {
     --bg:#0a0c12; --panel:#13161f; --panel2:#1a1e2a;
@@ -13,7 +13,7 @@
     --a-color:#5b8dee; --b-color:#a78bfa;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 
   header{padding:54px 20px 14px;background:var(--panel);border-bottom:1px solid var(--border)}
   header h1{font-size:22px;font-weight:700;letter-spacing:-.5px}
@@ -72,7 +72,7 @@
 
 <header>
   <h1>🎧 <span>Ultra</span> Shadowing</h1>
-  <p>Tüm özellikler aktif · v4.0</p>
+  <p>GitHub Web Sürümü · v4.2</p>
 </header>
 
 <div class="tabs">
@@ -97,15 +97,15 @@
 <div id="dialog-page" class="page">
   <div class="card">
     <div class="card-title">Diyalog Hazırla</div>
-    <textarea id="dialog-text" placeholder="A: Hello!&#10;B: Hi!&#10;(Veya sadece alt alta cümleler)"></textarea>
+    <textarea id="dialog-text" placeholder="A: Hello!&#10;B: Hi!&#10;(Sıralı cümleler A-B olarak otomatik ayrılır)"></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-diag').click()">📂 Dosya Yükle</div>
       <input type="file" id="file-diag" hidden onchange="loadFile(this, 'dialog-text')">
     </div>
-    <div class="card-title" style="margin-top:20px">Sen Hangi Rolü Yapacaksın?</div>
+    <div class="card-title" style="margin-top:20px">Taklit Edeceğin Rol</div>
     <div style="display:flex; gap:10px">
-      <button class="v-btn active" id="role-a" style="flex:1" onclick="setRole('A')">Kişi A</button>
-      <button class="v-btn" id="role-b" style="flex:1" onclick="setRole('B')">Kişi B</button>
+      <button class="v-btn active" id="role-a" style="flex:1" onclick="setRole('A')">Kişi A (SİZ)</button>
+      <button class="v-btn" id="role-b" style="flex:1" onclick="setRole('B')">Kişi B (SİZ)</button>
     </div>
     <button class="btn-main btn-start" style="background:var(--green); color:#000" onclick="initApp('dialog')">Diyaloğu Başlat ▶</button>
   </div>
@@ -116,11 +116,11 @@
   <div style="text-align:center; font-size:11px; color:var(--dim)" id="prog-detail">Hazır</div>
   
   <div style="text-align:center; margin-top:10px">
-    <div id="status-box" class="status-pill status-speaking">🔊 Dinleyin</div>
+    <div id="status-box" class="status-pill status-speaking">🔊 Hazır</div>
   </div>
 
   <div class="player-sentence-wrap">
-    <div id="display-text" class="player-sentence">Hazır mısın?</div>
+    <div id="display-text" class="player-sentence">Başlamak için Play butonuna basın.</div>
   </div>
 
   <div id="timer-display" style="text-align:center; font-size:36px; font-weight:800; color:var(--green); height:45px"></div>
@@ -132,35 +132,31 @@
   </div>
 
   <div class="card">
-    <div class="card-title">Cümle Listesi (Tıklanabilir)</div>
+    <div class="card-title">Cümle Akışı (Tıkla ve Atla)</div>
     <div id="list-container" class="sent-list"></div>
   </div>
 </div>
 
 <div id="settings-page" class="page">
   <div class="card">
-    <div class="card-title">Ses ve Hız</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
-      <div class="v-btn active" onclick="setVoice(this,'jenny')">Jenny (US)</div>
-      <div class="v-btn" onclick="setVoice(this,'guy')">Guy (US)</div>
-      <div class="v-btn" onclick="setVoice(this,'sonia')">Sonia (UK)</div>
-      <div class="v-btn" onclick="setVoice(this,'ryan')">Ryan (UK)</div>
-    </div>
-    <div class="setting-row" style="margin-top:15px"><span>Konuşma Hızı:</span> <span id="rate-label">Normal</span></div>
+    <div class="card-title">Ses Motoru (Edge/Chrome Önerilir)</div>
+    <div id="voice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+      </div>
+    <div class="setting-row" style="margin-top:15px"><span>Okuma Hızı:</span> <span id="rate-label">1.0x</span></div>
     <input type="range" min="0.5" max="1.5" step="0.1" value="1" oninput="rate=this.value; document.getElementById('rate-label').innerText=this.value+'x'">
   </div>
 
   <div class="card">
-    <div class="card-title">Shadowing Ayarları</div>
-    <div class="setting-row"><span>Tekrar Sayısı:</span> <span id="rep-label">1 Kez</span></div>
+    <div class="card-title">Shadowing & Süre Ayarları</div>
+    <div class="setting-row"><span>Cümle Tekrarı:</span> <span id="rep-label">1 Kez</span></div>
     <input type="range" min="1" max="5" step="1" value="1" oninput="repeatCount=this.value; document.getElementById('rep-label').innerText=this.value+' Kez'">
 
-    <div class="card-title" style="margin-top:10px">Bekleme Süresi Modu</div>
-    <button class="v-btn active" id="mode-dyn" style="width:100%; margin-bottom:10px" onclick="setPauseMode(true)">Dinamik (Kelime Bazlı - Akıllı)</button>
+    <div class="card-title" style="margin-top:10px">Bekleme Modu Seçimi</div>
+    <button class="v-btn active" id="mode-dyn" style="width:100%; margin-bottom:10px" onclick="setPauseMode(true)">Dinamik (Kelime Başına Otomatik)</button>
     <button class="v-btn" id="mode-stat" style="width:100%" onclick="setPauseMode(false)">Manuel (Sabit Süre)</button>
 
     <div id="dyn-set" style="margin-top:15px">
-      <div class="setting-row"><span>Kelime Başına Sn:</span> <span id="dyn-label">0.7sn</span></div>
+      <div class="setting-row"><span>Kelime Başına Ek Sn:</span> <span id="dyn-label">0.7sn</span></div>
       <input type="range" min="0.3" max="1.5" step="0.1" value="0.7" oninput="dynMultiplier=this.value; document.getElementById('dyn-label').innerText=this.value+'sn'">
     </div>
 
@@ -173,8 +169,36 @@
 
 <script>
 let sentences = [], currentIdx = 0, isPlaying = false;
-let myRole = 'A', voice = 'jenny', rate = 1;
+let myRole = 'A', rate = 1, selectedVoiceName = '';
 let isDynamic = true, dynMultiplier = 0.7, staticPause = 3, repeatCount = 1;
+
+// Sesleri yükle
+function loadVoices() {
+    let voices = window.speechSynthesis.getVoices();
+    const grid = document.getElementById('voice-grid');
+    grid.innerHTML = '';
+    
+    // Sadece İngilizce sesleri filtrele
+    let engVoices = voices.filter(v => v.lang.includes('en'));
+    
+    if(engVoices.length === 0) {
+        grid.innerHTML = '<p style="font-size:11px; color:var(--red)">Ses motoru yükleniyor, lütfen bekleyin...</p>';
+        return;
+    }
+
+    engVoices.forEach(v => {
+        const btn = document.createElement('div');
+        btn.className = 'v-btn' + (v.name === selectedVoiceName ? ' active' : '');
+        btn.innerText = v.name.split('Microsoft ').pop().split('Online').shift();
+        btn.onclick = () => {
+            selectedVoiceName = v.name;
+            loadVoices();
+        };
+        grid.appendChild(btn);
+    });
+    if(!selectedVoiceName && engVoices.length > 0) selectedVoiceName = engVoices[0].name;
+}
+window.speechSynthesis.onvoiceschanged = loadVoices;
 
 function showTab(n) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -182,6 +206,7 @@ function showTab(n) {
   document.getElementById(n+'-page').classList.add('active');
   const map = {text:0, dialog:1, player:2, settings:3};
   document.querySelectorAll('.tab')[map[n]].classList.add('active');
+  if(n === 'settings') loadVoices();
 }
 
 function setPauseMode(dyn) {
@@ -199,15 +224,9 @@ function loadFile(input, targetId) {
   reader.readAsText(file);
 }
 
-function setRole(r) {
-  myRole = r;
-  document.getElementById('role-a').classList.toggle('active', r==='A');
-  document.getElementById('role-b').classList.toggle('active', r==='B');
-}
-
 function initApp(mode) {
   const raw = (mode==='normal') ? document.getElementById('main-text').value : document.getElementById('dialog-text').value;
-  if(!raw.trim()) return alert("İçerik girin!");
+  if(!raw.trim()) return alert("Lütfen metin girin!");
 
   if(mode === 'normal') {
     sentences = raw.split(/[.!?]+/).filter(s=>s.trim().length > 2).map(s=>({text: s.trim()+'.', speaker: null}));
@@ -220,6 +239,7 @@ function initApp(mode) {
 
   renderList();
   currentIdx = 0;
+  isPlaying = false;
   showTab('player');
   updateUI();
 }
@@ -238,7 +258,7 @@ function renderList() {
       item.appendChild(span);
     }
     item.appendChild(document.createTextNode(s.text));
-    item.onclick = () => { currentIdx = i; updateUI(); if(!isPlaying) togglePlay(); };
+    item.onclick = () => { currentIdx = i; updateUI(); if(isPlaying) stopSpeech(); };
     container.appendChild(item);
   });
 }
@@ -251,7 +271,7 @@ function updateUI() {
     activeItem.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
   document.getElementById('prog-fill').style.width = ((currentIdx+1)/sentences.length*100) + "%";
-  document.getElementById('prog-detail').innerText = `Cümle ${currentIdx+1} / ${sentences.length}`;
+  document.getElementById('prog-detail').innerText = `İlerleme: ${currentIdx+1} / ${sentences.length}`;
 }
 
 async function startShadowing() {
@@ -265,11 +285,22 @@ async function startShadowing() {
 
     for(let r=0; r < (isMe ? repeatCount : 1); r++) {
         if(!isPlaying) break;
-        setStatus('speaking', `🔊 Okunuyor (${r+1}/${isMe?repeatCount:1})`);
-        await new Promise(res => setTimeout(res, 2000)); // TTS SİM
+        setStatus('speaking', `🔊 Okunuyor... (${r+1}/${isMe?repeatCount:1})`);
+        
+        // GERÇEK TTS MOTORU
+        await new Promise((resolve) => {
+            const utterance = new SpeechSynthesisUtterance(s.text);
+            const voices = window.speechSynthesis.getVoices();
+            utterance.voice = voices.find(v => v.name === selectedVoiceName) || voices[0];
+            utterance.rate = rate;
+            utterance.lang = 'en-US';
+            utterance.onend = resolve;
+            utterance.onerror = resolve;
+            window.speechSynthesis.speak(utterance);
+        });
 
         if(isMe && isPlaying) {
-          setStatus('repeat', '🎤 Tekrar Edin!');
+          setStatus('repeat', '🎤 Şimdi Sende!');
           let wait = isDynamic ? Math.max(2, s.text.split(' ').length * dynMultiplier) : staticPause;
           while(wait > 0 && isPlaying) {
             document.getElementById('timer-display').innerText = wait.toFixed(1);
@@ -285,7 +316,8 @@ async function startShadowing() {
         if(currentIdx >= sentences.length) {
             isPlaying = false;
             document.getElementById('play-btn').innerText = '▶';
-            document.getElementById('display-text').innerText = "Bitti! Harikasın! 🎉";
+            document.getElementById('display-text').innerText = "Tebrikler! Oturum Tamamlandı. 🎉";
+            setStatus('speaking', '✅ Bitti');
         }
     }
   }
@@ -297,21 +329,28 @@ function setStatus(mode, text) {
   box.innerText = text;
 }
 
+function stopSpeech() {
+    window.speechSynthesis.cancel();
+}
+
 function togglePlay() {
   isPlaying = !isPlaying;
   document.getElementById('play-btn').innerText = isPlaying ? '⏸' : '▶';
   if(isPlaying) startShadowing();
+  else stopSpeech();
 }
 
 function changeSentence(dir) {
+  stopSpeech();
   currentIdx = Math.max(0, Math.min(sentences.length-1, currentIdx + dir));
   updateUI();
+  if(isPlaying) startShadowing();
 }
 
-function setVoice(el, v) {
-  voice = v;
-  document.querySelectorAll('.v-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+function setRole(r) {
+  myRole = r;
+  document.getElementById('role-a').classList.toggle('active', r === 'A');
+  document.getElementById('role-b').classList.toggle('active', r === 'B');
 }
 </script>
 </body>
