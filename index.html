@@ -58,8 +58,26 @@
   .progress-bar{height:4px; background:var(--border); width:90%; margin:0 auto 10px; border-radius:2px; overflow:hidden}
   .progress-fill{height:100%; background:var(--accent); width:0%; transition:0.3s}
 
-  .v-btn{padding:10px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; color:var(--dim); font-size:12px; cursor:pointer; text-align:center}
-  .v-btn.active{border-color:var(--accent); color:var(--accent); background:rgba(91,141,238,0.1)}
+  .v-btn{padding:10px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; color:var(--dim); font-size:12px; cursor:pointer; text-align:center; transition: 0.2s}
+  .v-btn.active{border-color:var(--accent); color:var(--accent); background:rgba(91,141,238,0.1); font-weight: bold;}
+
+  /* YENİ EKLENEN SES LİSTESİ DÜZENİ */
+  #voice-grid {
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 8px; 
+    max-height: 180px; /* Listeyi sınırla */
+    overflow-y: auto;  /* Kaydırma ekle */
+    padding-right: 5px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 10px;
+  }
+  
+  /* Kaydırma çubuğu tasarımı */
+  #voice-grid::-webkit-scrollbar { width: 4px; }
+  #voice-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
   .setting-row{display:flex; justify-content:space-between; margin-bottom:5px; font-size:13px; align-items:center}
   input[type=range]{width:100%; margin-bottom:15px; accent-color:var(--accent)}
@@ -139,10 +157,11 @@
 
 <div id="settings-page" class="page">
   <div class="card">
-    <div class="card-title">Ses Motoru (Edge/Chrome Önerilir)</div>
-    <div id="voice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+    <div class="card-title">Ses Motoru (İngilizce Ses Seçin)</div>
+    <div id="voice-grid">
       </div>
-    <div class="setting-row" style="margin-top:15px"><span>Okuma Hızı:</span> <span id="rate-label">1.0x</span></div>
+    
+    <div class="setting-row"><span>Okuma Hızı:</span> <span id="rate-label">1.0x</span></div>
     <input type="range" min="0.5" max="1.5" step="0.1" value="1" oninput="rate=this.value; document.getElementById('rate-label').innerText=this.value+'x'">
   </div>
 
@@ -152,15 +171,17 @@
     <input type="range" min="1" max="5" step="1" value="1" oninput="repeatCount=this.value; document.getElementById('rep-label').innerText=this.value+' Kez'">
 
     <div class="card-title" style="margin-top:10px">Bekleme Modu Seçimi</div>
-    <button class="v-btn active" id="mode-dyn" style="width:100%; margin-bottom:10px" onclick="setPauseMode(true)">Dinamik (Kelime Başına Otomatik)</button>
-    <button class="v-btn" id="mode-stat" style="width:100%" onclick="setPauseMode(false)">Manuel (Sabit Süre)</button>
+    <div style="display:flex; gap:8px; margin-bottom:10px">
+      <button class="v-btn active" id="mode-dyn" style="flex:1" onclick="setPauseMode(true)">Dinamik</button>
+      <button class="v-btn" id="mode-stat" style="flex:1" onclick="setPauseMode(false)">Manuel</button>
+    </div>
 
-    <div id="dyn-set" style="margin-top:15px">
+    <div id="dyn-set">
       <div class="setting-row"><span>Kelime Başına Ek Sn:</span> <span id="dyn-label">0.7sn</span></div>
       <input type="range" min="0.3" max="1.5" step="0.1" value="0.7" oninput="dynMultiplier=this.value; document.getElementById('dyn-label').innerText=this.value+'sn'">
     </div>
 
-    <div id="stat-set" style="display:none; margin-top:15px">
+    <div id="stat-set" style="display:none">
       <div class="setting-row"><span>Sabit Bekleme:</span> <span id="stat-label">3.0sn</span></div>
       <input type="range" min="0" max="15" step="0.5" value="3" oninput="staticPause=this.value; document.getElementById('stat-label').innerText=this.value+'sn'">
     </div>
@@ -172,24 +193,30 @@ let sentences = [], currentIdx = 0, isPlaying = false;
 let myRole = 'A', rate = 1, selectedVoiceName = '';
 let isDynamic = true, dynMultiplier = 0.7, staticPause = 3, repeatCount = 1;
 
-// Sesleri yükle
 function loadVoices() {
     let voices = window.speechSynthesis.getVoices();
     const grid = document.getElementById('voice-grid');
+    if (!grid) return;
+    
     grid.innerHTML = '';
     
-    // Sadece İngilizce sesleri filtrele
-    let engVoices = voices.filter(v => v.lang.includes('en'));
+    // İngilizce sesleri filtrele ve alfabetik sırala
+    let engVoices = voices
+        .filter(v => v.lang.includes('en'))
+        .sort((a, b) => a.name.localeCompare(b.name));
     
     if(engVoices.length === 0) {
-        grid.innerHTML = '<p style="font-size:11px; color:var(--red)">Ses motoru yükleniyor, lütfen bekleyin...</p>';
+        grid.innerHTML = '<p style="font-size:11px; color:var(--dim); grid-column: 1 / span 2;">Sesler yükleniyor...</p>';
         return;
     }
 
     engVoices.forEach(v => {
         const btn = document.createElement('div');
         btn.className = 'v-btn' + (v.name === selectedVoiceName ? ' active' : '');
-        btn.innerText = v.name.split('Microsoft ').pop().split('Online').shift();
+        // İsmi kısalt: Microsoft Aria Online (Natural) -> Aria
+        let shortName = v.name.replace('Microsoft ', '').replace('Online (Natural)', '').replace('English', '').trim();
+        btn.innerText = shortName;
+        
         btn.onclick = () => {
             selectedVoiceName = v.name;
             loadVoices();
@@ -198,7 +225,11 @@ function loadVoices() {
     });
     if(!selectedVoiceName && engVoices.length > 0) selectedVoiceName = engVoices[0].name;
 }
+
+// Bazı tarayıcılarda onvoiceschanged hemen tetiklenmez
 window.speechSynthesis.onvoiceschanged = loadVoices;
+// Sayfa açıldığında da bir kez dene
+setTimeout(loadVoices, 500);
 
 function showTab(n) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -287,7 +318,6 @@ async function startShadowing() {
         if(!isPlaying) break;
         setStatus('speaking', `🔊 Okunuyor... (${r+1}/${isMe?repeatCount:1})`);
         
-        // GERÇEK TTS MOTORU
         await new Promise((resolve) => {
             const utterance = new SpeechSynthesisUtterance(s.text);
             const voices = window.speechSynthesis.getVoices();
@@ -325,8 +355,10 @@ async function startShadowing() {
 
 function setStatus(mode, text) {
   const box = document.getElementById('status-box');
-  box.className = "status-pill status-" + mode;
-  box.innerText = text;
+  if (box) {
+    box.className = "status-pill status-" + mode;
+    box.innerText = text;
+  }
 }
 
 function stopSpeech() {
