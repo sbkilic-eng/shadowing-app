@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Shadowing Ultra Pro v5.3</title>
+<title>Shadowing Ultra Pro v5.4</title>
 <style>
   :root {
     --bg:#0a0c12; --panel:#13161f; --panel2:#1a1e2a;
@@ -94,8 +94,8 @@
 
 <div id="text-page" class="page active">
   <div class="card">
-    <div class="card-title">Normal Metin (Ayırıcı: - veya = kullanın)</div>
-    <textarea id="main-text" placeholder="I am home = Evdeyim.&#10;She is running - Koşuyor."></textarea>
+    <div class="card-title">Metin Girişi (Ayırıcı: -- veya ; veya = kullanın)</div>
+    <textarea id="main-text" placeholder="Send an e-mail -- E-posta gönder.&#10;Check-in time = Giriş zamanı."></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-norm').click()">📂 Dosya Yükle</div>
       <input type="file" id="file-norm" hidden onchange="loadFile(this, 'main-text')">
@@ -107,7 +107,7 @@
 <div id="dialog-page" class="page">
   <div class="card">
     <div class="card-title">Diyalog Modu</div>
-    <textarea id="dialog-text" placeholder="A: Hello = Selam&#10;B: Hi - Merhaba"></textarea>
+    <textarea id="dialog-text" placeholder="A: Send e-mail ; E-posta gönder&#10;B: Okay -- Tamam"></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-diag').click()">📂 Dosya Yükle</div>
       <input type="file" id="file-diag" hidden onchange="loadFile(this, 'dialog-text')">
@@ -317,9 +317,14 @@ function initApp(mode) {
   const raw = (mode==='normal'?document.getElementById('main-text'):document.getElementById('dialog-text')).value;
   if(!raw.trim()) return alert("Metin girin!");
   
-  // UNIVERSAL AYIRICI: | - = işaretlerinin hepsini tanır
+  // YENİ AYIRICI MANTIĞI: -- veya ; veya = veya |
   sentences = raw.split('\n').filter(l=>l.trim()).map((l, i) => {
-    let parts = l.split(/[|=\-]/);
+    let parts;
+    if (l.includes('--')) parts = l.split('--');
+    else if (l.includes(';')) parts = l.split(';');
+    else if (l.includes('=')) parts = l.split('=');
+    else parts = l.split('|');
+
     let eng = parts[0].trim(), tr = parts[1] ? parts[1].trim() : "";
     let speaker = null;
     if(mode === 'dialog') {
