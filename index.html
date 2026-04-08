@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Shadowing Ultra Pro v5.2</title>
+<title>Shadowing Ultra Pro v5.3</title>
 <style>
   :root {
     --bg:#0a0c12; --panel:#13161f; --panel2:#1a1e2a;
@@ -43,7 +43,6 @@
   .player-sentence{font-size:22px; font-weight:600; text-align:center; line-height:1.4}
   .player-sentence.shadowing{color:var(--green)}
   .player-sentence.listening{color:var(--dim); font-style:italic}
-  .player-sentence.blurred{filter: blur(8px); opacity: 0.2;}
   .player-sentence.reverse-active{color: var(--accent2);}
 
   .sr-bar { display: flex; gap: 8px; margin-top: 10px; }
@@ -78,10 +77,6 @@
   #voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 160px; overflow-y: auto; padding: 5px; margin-bottom: 15px;}
   .v-btn{padding:10px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; color:var(--dim); font-size:11px; text-align:center; cursor:pointer; position: relative;}
   .v-btn.active{border-color:var(--accent); color:var(--accent); font-weight:bold}
-  .lang-tag{position: absolute; top: 2px; right: 4px; font-size: 8px; opacity: 0.7;}
-
-  .setting-row{display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; align-items:center}
-  input[type=range]{width:100%; margin-bottom:15px; accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -99,8 +94,8 @@
 
 <div id="text-page" class="page active">
   <div class="card">
-    <div class="card-title">Normal Metin (İngilizce | Türkçe)</div>
-    <textarea id="main-text" placeholder="I am learning English. | İngilizce öğreniyorum."></textarea>
+    <div class="card-title">Normal Metin (Ayırıcı: - veya = kullanın)</div>
+    <textarea id="main-text" placeholder="I am home = Evdeyim.&#10;She is running - Koşuyor."></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-norm').click()">📂 Dosya Yükle</div>
       <input type="file" id="file-norm" hidden onchange="loadFile(this, 'main-text')">
@@ -112,7 +107,7 @@
 <div id="dialog-page" class="page">
   <div class="card">
     <div class="card-title">Diyalog Modu</div>
-    <textarea id="dialog-text" placeholder="A: Hello | Selam&#10;B: Hi | Merhaba"></textarea>
+    <textarea id="dialog-text" placeholder="A: Hello = Selam&#10;B: Hi - Merhaba"></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-diag').click()">📂 Dosya Yükle</div>
       <input type="file" id="file-diag" hidden onchange="loadFile(this, 'dialog-text')">
@@ -226,9 +221,8 @@ function loadVoices() {
   filtered.forEach(v => {
     const btn = document.createElement('div');
     btn.className = 'v-btn' + (v.name === selectedVoiceName ? ' active' : '');
-    let flag = v.lang.includes('US') ? '🇺🇸' : '🇬🇧';
-    let cleanName = v.name.replace('Microsoft ', '').replace('Apple ', '').replace('(Premium)', '').split(' ')[0];
-    btn.innerHTML = `<span>${cleanName}</span><span class="lang-tag">${flag}</span>`;
+    let cleanName = v.name.replace('Microsoft ', '').replace('Apple ', '').split(' ')[0];
+    btn.innerHTML = `<span>${cleanName}</span>`;
     btn.onclick = () => { selectedVoiceName = v.name; loadVoices(); };
     grid.appendChild(btn);
   });
@@ -322,8 +316,10 @@ function setSR(val) {
 function initApp(mode) {
   const raw = (mode==='normal'?document.getElementById('main-text'):document.getElementById('dialog-text')).value;
   if(!raw.trim()) return alert("Metin girin!");
+  
+  // UNIVERSAL AYIRICI: | - = işaretlerinin hepsini tanır
   sentences = raw.split('\n').filter(l=>l.trim()).map((l, i) => {
-    let parts = l.split('|');
+    let parts = l.split(/[|=\-]/);
     let eng = parts[0].trim(), tr = parts[1] ? parts[1].trim() : "";
     let speaker = null;
     if(mode === 'dialog') {
@@ -385,7 +381,7 @@ async function startShadowing() {
     updateUI();
 
     if(isRev) {
-        await new Promise(r => setTimeout(r, 4000)); // Ters Çevir modu için 4 saniye bekleme
+        await new Promise(r => setTimeout(r, 4000));
         document.getElementById('display-text').innerText = s.eng;
         document.getElementById('display-text').classList.remove('reverse-active');
     }
@@ -397,16 +393,14 @@ async function startShadowing() {
       if(!isPlaying) break;
 
       if(isChunk && isMe) {
-          // CHUNKING MODU: Cümleyi 3'er kelimelik parçalara ayır
           let words = s.eng.split(' ');
           for(let i=0; i < words.length; i += 3) {
               if(!isPlaying) break;
               let chunk = words.slice(i, i+3).join(' ');
               document.getElementById('display-text').innerText = chunk;
-              setStatus('speaking', '🔊 Parça Okunuyor...');
+              setStatus('speaking', '🔊 Parça...');
               await speakText(chunk);
-              
-              setStatus('repeat', '🎤 Parçayı Tekrarla!');
+              setStatus('repeat', '🎤 Tekrar!');
               let wait = Math.max(1.5, chunk.length * charMultiplier);
               while(wait > 0 && isPlaying) {
                   document.getElementById('timer-display').innerText = wait.toFixed(1);
@@ -415,7 +409,6 @@ async function startShadowing() {
               }
           }
       } else {
-          // NORMAL MOD
           setStatus('speaking', '🔊 Okunuyor...');
           await speakText(s.eng);
           if(isMe && isPlaying) {
