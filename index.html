@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Shadowing Ultra Pro v5.9.1 - Premium Voice</title>
+<title>Shadowing Ultra Pro v5.9.5 - Force Load</title>
 <style>
   :root {
     --bg:#0a0c12; --panel:#13161f; --panel2:#1a1e2a;
@@ -122,8 +122,8 @@
     <div class="card-title">Diyalog Modu</div>
     <textarea id="dialog-text" placeholder="A: Hello = Selam&#10;B: Hi ; Merhaba"></textarea>
     <div class="file-row">
-      <div class="file-btn" onclick="document.getElementById('file-diag').click()">📂 Dosya Yükle</div>
-      <input type="file" id="file-diag" hidden onchange="loadFile(this, 'dialog-text')">
+      <div class="file-btn" onclick="document.getElementById('file-diag-input').click()">📂 Dosya Yükle</div>
+      <input type="file" id="file-diag-input" hidden onchange="handleFileSelect(this, 'dialog')">
     </div>
     <div style="display:flex; gap:10px; margin-top:15px">
       <button class="v-btn active" id="role-a" style="flex:1" onclick="setRole('A')">SİZ: A</button>
@@ -184,7 +184,7 @@
 
 <div id="settings-page" class="page">
   <div class="card">
-    <div class="card-title">Ses Motoru</div>
+    <div class="card-title">Ses Motoru (Universal)</div>
     <div class="setting-row"><span>Seslendirmeyi Kapat</span><label class="switch"><input type="checkbox" id="mute-toggle"><span class="slider"></span></label></div>
     <div id="voice-grid"></div>
     <div class="setting-row"><span>Okuma Hızı:</span> <span id="rate-label">1.0x</span></div>
@@ -209,7 +209,61 @@ let sentences = [], currentIdx = 0, isPlaying = false, cycleCount = 0;
 let myRole = 'A', rate = 1, repeatCount = 1, selectedVoiceName = '', isDynamic = true, charMultiplier = 0.12, staticPause = 3, wakeLock = null;
 let library = {}, diagLibrary = {};
 
-// --- KÜTÜPHANE YÖNETİMİ ---
+// --- EVRENSEL BEYAZ LİSTE ---
+const WHITELIST_VOICES = [
+    "Stephanie", "Siri", "Samantha", "Daniel", "Oliver", "Serena", "Karen", "Kate", "Arthur", "Martha", "Nicky", "Aaron",
+    "Google", "Microsoft", "Aria", "Guy", "Jenny", "Andrew", "Emma", "Brian", "David", "Zira", "Hazel"
+];
+
+// --- SES FİLTRELEME & FORCE LOAD ---
+function loadVoices() {
+  let voices = window.speechSynthesis.getVoices();
+  const grid = document.getElementById('voice-grid');
+  if(!grid) return;
+  
+  // Sadece Whitelist'te olan ve robotik olmayan İngilizce sesleri göster
+  let filtered = voices.filter(v => {
+    const name = v.name;
+    const isEnglish = v.lang.includes('en-US') || v.lang.includes('en-GB');
+    const isInWhitelist = WHITELIST_VOICES.some(w => name.includes(w));
+    const isRobotic = name.toLowerCase().includes('compact') || name.toLowerCase().includes('f0');
+    return isEnglish && isInWhitelist && !isRobotic;
+  }).sort((a,b) => {
+    const aH = a.name.includes('Online') || a.name.includes('Google') || a.name.includes('Siri');
+    const bH = b.name.includes('Online') || b.name.includes('Google') || b.name.includes('Siri');
+    if(aH && !bH) return -1; if(!aH && bH) return 1;
+    return a.lang.localeCompare(b.lang);
+  });
+  
+  if(filtered.length > 0) {
+      grid.innerHTML = '';
+      filtered.forEach(v => {
+        const btn = document.createElement('div');
+        btn.className = 'v-btn' + (v.name === selectedVoiceName ? ' active' : '');
+        let displayName = v.name.split(' ')[0];
+        if(v.name.includes('Google')) displayName = v.name.replace('Google ', '').split(' ')[0];
+        if(v.name.includes('Microsoft')) displayName = v.name.replace('Microsoft ', '').split(' ')[0];
+        btn.innerHTML = `<span>${displayName}</span>`;
+        btn.onclick = () => { selectedVoiceName = v.name; loadVoices(); };
+        grid.appendChild(btn);
+      });
+      if(!selectedVoiceName) selectedVoiceName = filtered[0].name;
+  }
+}
+
+// Tarayıcı sesleri her değiştirdiğinde veya ilk açılışta yükle
+window.speechSynthesis.onvoiceschanged = loadVoices;
+
+// FORCE LOAD: Sesler tam yüklenene kadar 1 saniyede bir dene
+let voiceCheckInterval = setInterval(() => {
+    const vCount = window.speechSynthesis.getVoices().length;
+    if(vCount > 0) {
+        loadVoices();
+        if(vCount > 10) clearInterval(voiceCheckInterval); // Yeterli ses gelince dur
+    }
+}, 1000);
+
+// --- KÜTÜPHANE & GENEL SİSTEM ---
 function saveToLibrary(name, content, type) {
     if(type === 'normal') {
         library[name] = content;
@@ -303,37 +357,6 @@ function initApp(mode) {
   renderList(); showTab('player'); updateUI();
 }
 
-function loadVoices() {
-  let voices = window.speechSynthesis.getVoices();
-  const grid = document.getElementById('voice-grid');
-  if(!grid) return; grid.innerHTML = '';
-  
-  // IPHONE SES DÜZELTMESİ: Robotik sesleri filtrele, sadece yüksek kaliteli olanları bırak
-  let filtered = voices.filter(v => {
-    const name = v.name.toLowerCase();
-    const isEnglish = v.lang.includes('en-US') || v.lang.includes('en-GB');
-    // Robotik/Düşük kaliteli ibareleri ele
-    const isRobotic = name.includes('compact') || name.includes('f0') || name.includes('desk') || name.includes('sample');
-    return isEnglish && !isRobotic;
-  }).sort((a,b) => {
-    const aH = a.name.includes('Siri') || a.name.includes('Enhanced') || a.name.includes('online');
-    const bH = b.name.includes('Siri') || b.name.includes('Enhanced') || b.name.includes('online');
-    if(aH && !bH) return -1; if(!aH && bH) return 1;
-    return a.lang.localeCompare(b.lang);
-  });
-  
-  filtered.forEach(v => {
-    const btn = document.createElement('div');
-    btn.className = 'v-btn' + (v.name === selectedVoiceName ? ' active' : '');
-    btn.innerHTML = `<span>${v.name.split(' ')[0]}</span>`;
-    btn.onclick = () => { selectedVoiceName = v.name; loadVoices(); };
-    grid.appendChild(btn);
-  });
-  if(!selectedVoiceName && filtered.length > 0) selectedVoiceName = filtered[0].name;
-}
-window.speechSynthesis.onvoiceschanged = loadVoices;
-setTimeout(loadVoices, 800);
-
 function renderList() {
   const cont = document.getElementById('list-container');
   if(!cont) return; cont.innerHTML = '';
@@ -360,15 +383,10 @@ function updateUI() {
   localStorage.setItem('shadow_idx', currentIdx);
 }
 
-// --- SES MOTORU GÜNCELLEMESİ (ROLE MUTE MANTIĞI) ---
 async function speakText(text, isMyTurn) {
   const isGlobalMute = document.getElementById('mute-toggle').checked;
   const isRoleMute = document.getElementById('mute-role-toggle').checked;
-  
-  if(isGlobalMute || (isMyTurn && isRoleMute)) {
-      return Promise.resolve(); 
-  }
-
+  if(isGlobalMute || (isMyTurn && isRoleMute)) return Promise.resolve(); 
   return new Promise(res => {
     const u = new SpeechSynthesisUtterance(text);
     u.voice = window.speechSynthesis.getVoices().find(v => v.name === selectedVoiceName) || null;
@@ -387,14 +405,11 @@ async function startShadowing() {
     }
     const isRev = document.getElementById('rev-toggle').checked;
     const isChunk = document.getElementById('chunk-toggle').checked;
-    const chunkVal = parseInt(document.getElementById('chunk-range').value); // Dinamik chunk boyutu
-    
+    const chunkVal = parseInt(document.getElementById('chunk-range').value);
     updateUI();
     if(isRev) { await new Promise(r => setTimeout(r, 4000)); document.getElementById('display-text').innerText = s.eng; document.getElementById('display-text').classList.remove('reverse-active'); }
-    
     const isMe = !s.speaker || s.speaker === myRole;
     document.getElementById('display-text').className = "player-sentence " + (isMe ? "shadowing" : "listening");
-    
     for(let r=0; r < (isMe ? repeatCount : 1); r++) {
       if(!isPlaying) break;
       if(isChunk && isMe) {
@@ -412,7 +427,6 @@ async function startShadowing() {
       } else {
           setStatus('speaking', '🔊 Okunuyor...'); 
           await speakText(s.eng, isMe); 
-          
           if(isMe && isPlaying) {
             setStatus('repeat', '🎤 Sıra Sende!');
             let wait = isDynamic ? Math.max(2, s.eng.length * charMultiplier) : staticPause;
