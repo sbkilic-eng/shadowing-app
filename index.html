@@ -98,12 +98,20 @@
   <div class="tab active" onclick="showTab('text')">📝 Metin</div>
   <div class="tab" onclick="showTab('dialog')">💬 Diyalog</div>
   <div class="tab" onclick="showTab('player')">▶️ Oynat</div>
+  <div class="tab" onclick="showTab('stats')">📊 Stats</div>
   <div class="tab" onclick="showTab('settings')">⚙️ Ayarlar</div>
 </div>
 
 <div id="text-page" class="page active">
   <div class="card">
     <div class="card-title">Metin Girişi (-- / ; / =)</div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">
+      <button onclick="loadTemplate('greetings')" style="padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--accent); font-size:10px; cursor:pointer">👋 Selamlaşma</button>
+      <button onclick="loadTemplate('shopping')" style="padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--accent); font-size:10px; cursor:pointer">🛒 Alışveriş</button>
+      <button onclick="loadTemplate('travel')" style="padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--accent); font-size:10px; cursor:pointer">✈️ Seyahat</button>
+      <button onclick="loadTemplate('business')" style="padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--accent2); font-size:10px; cursor:pointer">💼 İş</button>
+      <button onclick="loadTemplate('news')" style="padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--accent2); font-size:10px; cursor:pointer">📰 Haber</button>
+    </div>
     <textarea id="main-text" placeholder="Cümle çalışmaları..."></textarea>
     <div class="file-row">
       <div class="file-btn" onclick="document.getElementById('file-input').click()">📂 Dosya Seç</div>
@@ -170,7 +178,15 @@
       </div>
       <div id="meaning-box" class="meaning-box-mini"></div>
     </div>
-    <div id="timer-display" style="text-align:center; font-size:32px; font-weight:800; color:var(--green); height:40px"></div>
+    <div style="display:flex; justify-content:center; align-items:center; height:60px;">
+      <svg id="timer-svg" width="56" height="56" viewBox="0 0 56 56" style="display:none">
+        <circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="4"/>
+        <circle id="timer-arc" cx="28" cy="28" r="24" fill="none" stroke="var(--green)" stroke-width="4"
+          stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round"
+          transform="rotate(-90 28 28)" style="transition:stroke-dashoffset 0.1s linear"/>
+        <text id="timer-display" x="28" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="var(--green)"></text>
+      </svg>
+    </div>
     <div class="media-controls">
       <button class="mc-btn tool" onclick="restartFromZero()" title="Başa Dön">⏮</button>
       <button class="mc-btn" onclick="changeSentence(-1)">⏪</button>
@@ -180,6 +196,50 @@
     </div>
   </div>
   <div class="list-scroll-area"><div id="list-container"></div></div>
+</div>
+
+<div id="stats-page" class="page">
+  <div class="card">
+    <div class="card-title">📊 Genel İstatistikler</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+      <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border); text-align:center">
+        <div style="font-size:28px; font-weight:800; color:var(--accent)" id="stat-total-sentences">0</div>
+        <div style="font-size:10px; color:var(--dim); margin-top:4px">Toplam Cümle</div>
+      </div>
+      <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border); text-align:center">
+        <div style="font-size:28px; font-weight:800; color:var(--green)" id="stat-mastered">0</div>
+        <div style="font-size:10px; color:var(--dim); margin-top:4px">Ustalaşılan (L2+)</div>
+      </div>
+      <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border); text-align:center">
+        <div style="font-size:28px; font-weight:800; color:var(--accent2)" id="stat-cycles">0</div>
+        <div style="font-size:10px; color:var(--dim); margin-top:4px">Tamamlanan Tur</div>
+      </div>
+      <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border); text-align:center">
+        <div style="font-size:28px; font-weight:800; color:var(--orange)" id="stat-streak">0</div>
+        <div style="font-size:10px; color:var(--dim); margin-top:4px">🔥 Gün Serisi</div>
+      </div>
+    </div>
+    <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border); margin-bottom:10px">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px">
+        <span>Genel İlerleme</span>
+        <span id="stat-pct" style="color:var(--accent); font-weight:700">0%</span>
+      </div>
+      <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden">
+        <div id="stat-prog-bar" style="height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:4px; width:0%; transition:0.5s"></div>
+      </div>
+    </div>
+    <div style="background:var(--panel2); border-radius:12px; padding:14px; border:1px solid var(--border)">
+      <div style="font-size:11px; font-weight:700; color:var(--accent2); margin-bottom:8px">SEVİYE DAĞILIMI</div>
+      <div id="stat-level-bars"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Oturum Süresi</div>
+    <div style="text-align:center; padding:10px">
+      <div id="stat-session-time" style="font-size:36px; font-weight:800; color:var(--accent); letter-spacing:2px">00:00</div>
+      <div style="font-size:10px; color:var(--dim); margin-top:4px">Bu oturumda geçen süre</div>
+    </div>
+  </div>
 </div>
 
 <div id="settings-page" class="page">
@@ -202,6 +262,13 @@
     <div id="stat-set" style="display:none"><div class="setting-row"><span>Sabit Bekleme:</span> <span id="stat-label">3.0s</span></div><input type="range" min="0" max="15" step="0.5" value="3" oninput="staticPause=this.value; document.getElementById('stat-label').innerText=this.value+'s'"></div>
   </div>
   <button onclick="clearLocalStorage()" style="background: none; border: none; color: var(--red); font-size: 10px; margin: 20px; text-decoration: underline; cursor: pointer;">Tüm Verileri Sıfırla</button>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">📤 Dışa Aktar & Paylaş</div>
+    <div style="display:flex; gap:10px">
+      <button onclick="exportText()" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--panel2); color:var(--text); font-size:13px; font-weight:600; cursor:pointer">⬇️ .txt İndir</button>
+      <button onclick="shareViaURL()" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--panel2); color:var(--accent2); font-size:13px; font-weight:600; cursor:pointer">🔗 Link Paylaş</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -354,6 +421,7 @@ function initApp(mode) {
   });
   currentIdx = 0; cycleCount = 0; isPlaying = false;
   localStorage.setItem('shadow_data', JSON.stringify(sentences));
+  autoSavePrompt(mode);
   renderList(); showTab('player'); updateUI();
 }
 
@@ -363,7 +431,7 @@ function renderList() {
   sentences.forEach((s, i) => {
     const item = document.createElement('div');
     item.className = 'sent-item'; item.id = 'item-' + i;
-    item.innerHTML = `<span>${(s.speaker ? s.speaker+": " : "") + s.eng}</span><span class="lvl-tag">L${s.lvl}</span>`;
+    item.innerHTML = `<span>${(s.speaker ? s.speaker+": " : "") + s.eng}</span><span class="lvl-tag" style="color:${['var(--dim)','var(--accent)','var(--green)','var(--accent2)'][Math.min(s.lvl,3)]}; background:${['rgba(100,116,139,0.15)','rgba(91,141,238,0.15)','rgba(52,211,153,0.15)','rgba(167,139,250,0.15)'][Math.min(s.lvl,3)]}; padding:2px 7px; border-radius:8px">L${s.lvl}${s.lvl>=2?' ⭐':''}</span>`;
     item.onclick = () => { currentIdx = i; updateUI(); window.speechSynthesis.cancel(); };
     cont.appendChild(item);
   });
@@ -383,6 +451,15 @@ function updateUI() {
   localStorage.setItem('shadow_idx', currentIdx);
 }
 
+function renderHighlightedText(text, activeWordIndex) {
+  const words = text.split(' ');
+  return words.map((w, i) =>
+    i === activeWordIndex
+      ? `<span style="background:rgba(251,146,60,0.35);color:#fb923c;border-radius:4px;padding:0 3px;transition:all 0.1s">${w}</span>`
+      : `<span>${w}</span>`
+  ).join(' ');
+}
+
 async function speakText(text, isMyTurn) {
   const isGlobalMute = document.getElementById('mute-toggle').checked;
   const isRoleMute = document.getElementById('mute-role-toggle').checked;
@@ -390,7 +467,20 @@ async function speakText(text, isMyTurn) {
   return new Promise(res => {
     const u = new SpeechSynthesisUtterance(text);
     u.voice = window.speechSynthesis.getVoices().find(v => v.name === selectedVoiceName) || null;
-    u.rate = rate; u.onend = res;
+    u.rate = rate;
+    u.onboundary = (e) => {
+      if(e.name === 'word') {
+        const spokenSoFar = text.substring(0, e.charIndex);
+        const wordIndex = spokenSoFar.trim().split(/\s+/).filter(Boolean).length;
+        const dText = document.getElementById('display-text');
+        if(dText) dText.innerHTML = renderHighlightedText(text, wordIndex);
+      }
+    };
+    u.onend = () => {
+      const dText = document.getElementById('display-text');
+      if(dText) dText.innerHTML = renderHighlightedText(text, -1);
+      res();
+    };
     window.speechSynthesis.speak(u);
   });
 }
@@ -422,7 +512,8 @@ async function startShadowing() {
               await speakText(chunk, true); 
               setStatus('repeat', '🎤 Tekrar!');
               let wait = Math.max(1.5, chunk.length * charMultiplier);
-              while(wait > 0 && isPlaying) { document.getElementById('timer-display').innerText = wait.toFixed(1); await new Promise(res => setTimeout(res, 100)); wait -= 0.1; }
+              const totalWait1 = wait;
+              while(wait > 0 && isPlaying) { setTimerDisplay(wait, totalWait1); await new Promise(res => setTimeout(res, 100)); wait -= 0.1; }
           }
       } else {
           setStatus('speaking', '🔊 Okunuyor...'); 
@@ -430,12 +521,29 @@ async function startShadowing() {
           if(isMe && isPlaying) {
             setStatus('repeat', '🎤 Sıra Sende!');
             let wait = isDynamic ? Math.max(2, s.eng.length * charMultiplier) : staticPause;
-            while(wait > 0 && isPlaying) { document.getElementById('timer-display').innerText = wait.toFixed(1); await new Promise(res => setTimeout(res, 100)); wait -= 0.1; }
+            const totalWait2 = wait;
+            while(wait > 0 && isPlaying) { setTimerDisplay(wait, totalWait2); await new Promise(res => setTimeout(res, 100)); wait -= 0.1; }
           }
       }
-      document.getElementById('timer-display').innerText = "";
+      setTimerDisplay(0, 0);
     }
     if(isPlaying) { currentIdx++; if(currentIdx >= sentences.length) { currentIdx = 0; cycleCount++; } }
+  }
+}
+
+function setTimerDisplay(val, total) {
+  const svg = document.getElementById('timer-svg');
+  const arc = document.getElementById('timer-arc');
+  const txt = document.getElementById('timer-display');
+  if(!svg || !arc || !txt) return;
+  if(val <= 0) {
+    svg.style.display = 'none'; txt.textContent = '';
+  } else {
+    svg.style.display = 'block';
+    const circumference = 150.8;
+    const pct = Math.min(val / (total || val), 1);
+    arc.setAttribute('stroke-dashoffset', circumference * (1 - pct));
+    txt.textContent = parseFloat(val).toFixed(1);
   }
 }
 
@@ -443,7 +551,7 @@ function setSR(val) { if(!sentences[currentIdx]) return; if(val === 1) sentences
 function setStatus(m, t) { const b = document.getElementById('status-box'); if(b) { b.className = 'status-pill status-' + m; b.innerText = t; } }
 function togglePlay() { isPlaying = !isPlaying; document.getElementById('play-btn').innerText = isPlaying ? '⏸' : '▶'; if(isPlaying) { requestWakeLock(); startShadowing(); } else { if(wakeLock) wakeLock.release(); window.speechSynthesis.cancel(); } }
 function changeSentence(n) { window.speechSynthesis.cancel(); currentIdx = (currentIdx + n + sentences.length) % sentences.length; updateUI(); if(isPlaying) startShadowing(); }
-function showTab(n) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(n+'-page').classList.add('active'); const map = {text:0, dialog:1, player:2, settings:3}; document.querySelectorAll('.tab')[map[n]].classList.add('active'); }
+function showTab(n) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(n+'-page').classList.add('active'); const map = {text:0, dialog:1, player:2, stats:3, settings:4}; document.querySelectorAll('.tab')[map[n]].classList.add('active'); if(n==='stats') updateStats(); }
 function setRole(r) { myRole = r; document.getElementById('role-a').classList.toggle('active', r === 'A'); document.getElementById('role-b').classList.toggle('active', r === 'B'); }
 function toggleTransView(show) { document.getElementById('meaning-box').style.display = show ? 'flex' : 'none'; }
 function restartFromZero() { window.speechSynthesis.cancel(); currentIdx = 0; updateUI(); if(isPlaying) startShadowing(); }
@@ -452,7 +560,155 @@ function setPauseMode(dyn) { isDynamic = dyn; document.getElementById('mode-dyn'
 function clearLocalStorage() { if(confirm("Tüm veriler silinsin mi?")) { localStorage.clear(); location.reload(); } }
 async function requestWakeLock() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
 
-window.onload = loadState;
+// --- HIZLI ŞABLONLAR ---
+const TEMPLATES = {
+  greetings: `How are you doing? -- Nasılsın?
+Nice to meet you. -- Tanıştığımıza memnun oldum.
+It's been a while! -- Çok oldu!
+What have you been up to? -- Ne yapıyordun?
+I'm doing really well, thanks. -- Çok iyiyim, teşekkürler.
+Take care of yourself. -- Kendine iyi bak.`,
+  shopping: `How much does this cost? -- Bu ne kadar?
+Do you have this in a different size? -- Bunun farklı bedeni var mı?
+I'd like to return this item. -- Bu ürünü iade etmek istiyorum.
+Can I pay by credit card? -- Kredi kartıyla ödeyebilir miyim?
+Do you have any discounts? -- İndiriminiz var mı?
+I'll take two of these, please. -- Bundan iki tane alayım lütfen.`,
+  travel: `Where is the nearest station? -- En yakın istasyon nerede?
+I'd like a window seat, please. -- Pencere kenarı istiyorum lütfen.
+How long does the journey take? -- Yolculuk ne kadar sürer?
+Is this the right bus for downtown? -- Bu otobüs şehir merkezine gider mi?
+My luggage seems to be missing. -- Bagajım kaybolmuş gibi görünüyor.
+Could you recommend a good restaurant? -- İyi bir restoran önerebilir misiniz?`,
+  business: `Let's schedule a meeting for next week. -- Gelecek hafta bir toplantı planlayalım.
+I'll send you the report by end of day. -- Raporu gün sonuna kadar gönderirim.
+Could you clarify what you meant by that? -- Bununla ne demek istediğinizi açar mısınız?
+We need to discuss the budget. -- Bütçeyi görüşmemiz gerekiyor.
+I appreciate your feedback on this. -- Bu konudaki geri bildiriminizi takdir ediyorum.
+Let's move on to the next agenda item. -- Bir sonraki gündem maddesine geçelim.`,
+  news: `Scientists have made a major breakthrough. -- Bilim insanları önemli bir atılım yaptı.
+The economy is showing signs of recovery. -- Ekonomi toparlanma işaretleri gösteriyor.
+Negotiations between the two sides continue. -- İki taraf arasındaki müzakereler devam ediyor.
+Officials say the situation is under control. -- Yetkililer durumun kontrol altında olduğunu söylüyor.
+Millions of people were affected by the storm. -- Milyonlarca insan fırtınadan etkilendi.
+The new policy will take effect next month. -- Yeni politika gelecek ay yürürlüğe girecek.`
+};
+
+function loadTemplate(key) {
+  const ta = document.getElementById('main-text');
+  if(ta && TEMPLATES[key]) ta.value = TEMPLATES[key];
+}
+
+// --- OTOMATİK KAYDETME ---
+function autoSavePrompt(mode) {
+  const ta = document.getElementById(mode === 'normal' ? 'main-text' : 'dialog-text');
+  if(!ta || !ta.value.trim()) return;
+  const lib = mode === 'normal' ? library : diagLibrary;
+  const existingValues = Object.values(lib);
+  if(existingValues.includes(ta.value.trim())) return; // zaten kayıtlı
+  const name = prompt("Bu metni kitaplığa kaydetmek ister misin?\nİsim gir (iptal için boş bırak):");
+  if(name && name.trim()) saveToLibrary(name.trim(), ta.value.trim(), mode);
+}
+
+// --- İÇERİK PAYLAŞIMI ---
+function exportText() {
+  if(!sentences.length) return alert("Önce bir metin yükleyin.");
+  const content = sentences.map(s => {
+    let line = s.eng;
+    if(s.tr) line += ' -- ' + s.tr;
+    if(s.speaker) line = s.speaker + ': ' + line;
+    return line;
+  }).join('\n');
+  const blob = new Blob([content], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'shadowing-export.txt';
+  a.click();
+}
+
+function shareViaURL() {
+  if(!sentences.length) return alert("Önce bir metin yükleyin.");
+  const raw = sentences.map(s => {
+    let line = s.eng;
+    if(s.tr) line += ' -- ' + s.tr;
+    return line;
+  }).join('\n');
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(raw)));
+    const url = location.origin + location.pathname + '?t=' + encoded;
+    if(navigator.share) {
+      navigator.share({ title: 'Shadowing Metni', url });
+    } else {
+      navigator.clipboard.writeText(url).then(() => alert("Link kopyalandı! 📋"));
+    }
+  } catch(e) { alert("Paylaşım oluşturulamadı."); }
+}
+
+function loadFromURL() {
+  const params = new URLSearchParams(location.search);
+  const t = params.get('t');
+  if(!t) return;
+  try {
+    const decoded = decodeURIComponent(escape(atob(t)));
+    document.getElementById('main-text').value = decoded;
+    setTimeout(() => initApp('normal'), 300);
+  } catch(e) {}
+}
+
+
+let sessionStart = Date.now();
+setInterval(() => {
+  const el = document.getElementById('stat-session-time');
+  if(!el) return;
+  const diff = Math.floor((Date.now() - sessionStart) / 1000);
+  const m = String(Math.floor(diff/60)).padStart(2,'0');
+  const s = String(diff%60).padStart(2,'0');
+  el.textContent = m + ':' + s;
+}, 1000);
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  const lastDay = localStorage.getItem('shadow_last_day');
+  let streak = parseInt(localStorage.getItem('shadow_streak') || '0');
+  if(lastDay === today) return streak;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  streak = (lastDay === yesterday) ? streak + 1 : 1;
+  localStorage.setItem('shadow_streak', streak);
+  localStorage.setItem('shadow_last_day', today);
+  return streak;
+}
+
+function updateStats() {
+  if(!sentences.length) return;
+  const total = sentences.length;
+  const mastered = sentences.filter(s => s.lvl >= 2).length;
+  const pct = Math.round((mastered / total) * 100);
+  document.getElementById('stat-total-sentences').textContent = total;
+  document.getElementById('stat-mastered').textContent = mastered;
+  document.getElementById('stat-cycles').textContent = cycleCount;
+  document.getElementById('stat-streak').textContent = updateStreak();
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('stat-prog-bar').style.width = pct + '%';
+  const maxLvl = Math.max(...sentences.map(s=>s.lvl), 0);
+  const lvlBar = document.getElementById('stat-level-bars');
+  if(lvlBar) {
+    lvlBar.innerHTML = '';
+    for(let l = 0; l <= Math.max(maxLvl, 3); l++) {
+      const count = sentences.filter(s=>s.lvl===l).length;
+      const barPct = Math.round((count/total)*100);
+      const colors = ['var(--dim)','var(--accent)','var(--green)','var(--accent2)'];
+      lvlBar.innerHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:11px">
+        <span style="width:20px; color:${colors[l]||'var(--accent2)'}; font-weight:700">L${l}</span>
+        <div style="flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden">
+          <div style="width:${barPct}%; height:100%; background:${colors[l]||'var(--accent2)'}; border-radius:3px"></div>
+        </div>
+        <span style="width:28px; text-align:right; color:var(--dim)">${count}</span>
+      </div>`;
+    }
+  }
+}
+
+window.onload = () => { loadState(); loadFromURL(); updateStreak(); };
 </script>
 </body>
 </html>
