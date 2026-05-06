@@ -305,6 +305,7 @@
         var v = this.value;
         document.getElementById('font-size-label').innerText = v + 'px';
         document.getElementById('display-text').style.fontSize = v + 'px';
+        document.getElementById('meaning-box').style.fontSize = v + 'px';
         localStorage.setItem('playerFontSize', v);
       ">
     <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px">
@@ -833,6 +834,7 @@ window.onload = () => { loadState(); loadFromURL(); updateStreak(); generateAppI
   var savedFont = localStorage.getItem('playerFontSize');
   if (savedFont) {
     document.getElementById('display-text').style.fontSize = savedFont + 'px';
+    document.getElementById('meaning-box').style.fontSize = savedFont + 'px';
     document.getElementById('font-size-slider').value = savedFont;
     document.getElementById('font-size-label').innerText = savedFont + 'px';
   }
