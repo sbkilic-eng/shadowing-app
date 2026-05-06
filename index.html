@@ -295,6 +295,24 @@
   </div>
 
   <div class="card">
+    <div class="card-title">🔤 Oynatıcı Yazı Boyutu</div>
+    <div class="setting-row">
+      <span>Cümle boyutu:</span>
+      <span id="font-size-label" style="font-weight:700;color:var(--accent)">38px</span>
+    </div>
+    <input type="range" min="18" max="64" step="2" value="38" id="font-size-slider"
+      oninput="
+        var v = this.value;
+        document.getElementById('font-size-label').innerText = v + 'px';
+        document.getElementById('display-text').style.fontSize = v + 'px';
+        localStorage.setItem('playerFontSize', v);
+      ">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px">
+      <span>Küçük</span><span>Orta</span><span>Büyük</span>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title">Ses Motoru (Universal)</div>
     <div class="setting-row"><span>Seslendirmeyi Kapat</span><label class="switch"><input type="checkbox" id="mute-toggle"><span class="slider"></span></label></div>
     <div id="voice-grid"></div>
@@ -811,7 +829,14 @@ function generateAppIcon() {
   link.href = dataURL;
 }
 
-window.onload = () => { loadState(); loadFromURL(); updateStreak(); generateAppIcon(); };
+window.onload = () => { loadState(); loadFromURL(); updateStreak(); generateAppIcon();
+  var savedFont = localStorage.getItem('playerFontSize');
+  if (savedFont) {
+    document.getElementById('display-text').style.fontSize = savedFont + 'px';
+    document.getElementById('font-size-slider').value = savedFont;
+    document.getElementById('font-size-label').innerText = savedFont + 'px';
+  }
+};
 </script>
 <div class="tabs">
   <div class="tab active" onclick="showTab('text')"><span class="tab-icon">📝</span>Metin</div>
