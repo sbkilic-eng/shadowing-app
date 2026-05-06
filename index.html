@@ -14,13 +14,15 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;transition:background 0.3s, color 0.3s}
 
-  header{padding:54px 20px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;transition:background 0.3s, border-color 0.3s}
-  header h1{font-size:22px;font-weight:700;letter-spacing:-.5px}
+  header{padding:env(safe-area-inset-top, 44px) 20px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;transition:background 0.3s, border-color 0.3s;display:flex;align-items:center;gap:12px}
+  header h1{font-size:20px;font-weight:700;letter-spacing:-.5px}
   header h1 span{color:var(--accent)}
+  .header-logo{flex-shrink:0}
 
-  .tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;transition:background 0.3s, border-color 0.3s}
-  .tab{flex:1;padding:12px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.3s}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabs{display:flex;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0;transition:background 0.3s, border-color 0.3s;padding-bottom:env(safe-area-inset-bottom, 0px);}
+  .tab{flex:1;padding:8px 2px 6px;text-align:center;font-size:9px;font-weight:700;color:var(--dim);cursor:pointer;border-top:2px solid transparent;transition:color 0.2s, border-color 0.2s;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:0.03em}
+  .tab-icon{font-size:20px;line-height:1}
+  .tab.active{color:var(--accent);border-top-color:var(--accent)}
 
   .page{display:none;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:40px}
   .page.active{display:flex}
@@ -95,16 +97,37 @@
 <body>
 
 <header>
-  <h1>🎧 <span>Ultra</span> Shadowing</h1>
-</header>
+  <div class="header-logo">
+    <svg width="42" height="34" viewBox="0 0 42 34" xmlns="http://www.w3.org/2000/svg">
+      <!-- Head silhouette (profile, facing right) -->
+      <ellipse cx="9" cy="9.5" rx="6" ry="6.5" fill="#f59e0b"/>
+      <!-- Neck + shoulder body -->
+      <path d="M5 17 Q4.5 22 2 34 L16 34 Q13.5 22 13 17 Z" fill="#f59e0b"/>
+      <!-- Mouth opening -->
+      <ellipse cx="14" cy="12" rx="1.8" ry="1.1" fill="var(--bg)"/>
 
-<div class="tabs">
-  <div class="tab active" onclick="showTab('text')">📝 Metin</div>
-  <div class="tab" onclick="showTab('dialog')">💬 Diyalog</div>
-  <div class="tab" onclick="showTab('player')">▶️ Oynat</div>
-  <div class="tab" onclick="showTab('stats')">📊 Stats</div>
-  <div class="tab" onclick="showTab('settings')">⚙️ Ayarlar</div>
-</div>
+      <!-- Word 1 (primary speech — solid) -->
+      <rect x="17" y="7" width="9" height="2.8" rx="1.4" fill="#f59e0b"/>
+      <rect x="27.5" y="7" width="5.5" height="2.8" rx="1.4" fill="#f59e0b"/>
+      <!-- Shadow of word 1 -->
+      <rect x="17.8" y="10.4" width="9" height="2.8" rx="1.4" fill="#fb923c" opacity="0.55"/>
+      <rect x="28.3" y="10.4" width="5.5" height="2.8" rx="1.4" fill="#fb923c" opacity="0.55"/>
+
+      <!-- Word 2 (echo — medium opacity) -->
+      <rect x="17" y="15.5" width="7.5" height="2.5" rx="1.25" fill="#f59e0b" opacity="0.65"/>
+      <rect x="25.8" y="15.5" width="4.5" height="2.5" rx="1.25" fill="#f59e0b" opacity="0.65"/>
+      <!-- Shadow of word 2 -->
+      <rect x="17.8" y="18.5" width="7.5" height="2.5" rx="1.25" fill="#fb923c" opacity="0.3"/>
+      <rect x="26.6" y="18.5" width="4.5" height="2.5" rx="1.25" fill="#fb923c" opacity="0.3"/>
+
+      <!-- Word 3 (ghost — faint) -->
+      <rect x="17" y="23" width="5.5" height="2.2" rx="1.1" fill="#f59e0b" opacity="0.3"/>
+      <rect x="23.8" y="23" width="3.5" height="2.2" rx="1.1" fill="#f59e0b" opacity="0.3"/>
+      <rect x="17.6" y="25.7" width="5.5" height="2.2" rx="1.1" fill="#fb923c" opacity="0.14"/>
+    </svg>
+  </div>
+  <h1><span>Shadow</span>ing</h1>
+</header>
 
 <div id="text-page" class="page active">
   <div class="card">
@@ -729,5 +752,13 @@ function updateStats() {
 
 window.onload = () => { loadState(); loadFromURL(); updateStreak(); };
 </script>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('text')"><span class="tab-icon">📝</span>Metin</div>
+  <div class="tab" onclick="showTab('dialog')"><span class="tab-icon">💬</span>Diyalog</div>
+  <div class="tab" onclick="showTab('player')"><span class="tab-icon">▶️</span>Oynat</div>
+  <div class="tab" onclick="showTab('stats')"><span class="tab-icon">📊</span>Stats</div>
+  <div class="tab" onclick="showTab('settings')"><span class="tab-icon">⚙️</span>Ayarlar</div>
+</div>
+
 </body>
 </html>
