@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shadowing">
+<meta name="theme-color" content="#f59e0b">
 <title>Shadowing Ultra Pro v5.9.5 - Force Load</title>
 <style>
   :root {
@@ -750,7 +754,56 @@ function updateStats() {
   }
 }
 
-window.onload = () => { loadState(); loadFromURL(); updateStreak(); };
+function generateAppIcon() {
+  const size = 180;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(0, 0, size, size);
+
+  const hx = 62, hy = 90, r = 46;
+  const ma = 12 * Math.PI / 180;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.arc(hx, hy, r, ma, -ma, false);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fill();
+
+  function bar(x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    const rx = h / 2;
+    if(ctx.roundRect) { ctx.roundRect(x, y, w, h, rx); }
+    else { ctx.rect(x, y, w, h); }
+    ctx.fill();
+  }
+
+  const wx = 115;
+  bar(wx,    79, 40, 10, 'rgba(255,255,255,0.28)');
+  bar(wx+43, 79, 16, 10, 'rgba(255,255,255,0.28)');
+  bar(wx,    71, 40, 10, 'rgba(255,255,255,1.00)');
+  bar(wx+43, 71, 16, 10, 'rgba(255,255,255,1.00)');
+
+  bar(wx,    93, 32,  9, 'rgba(255,255,255,0.16)');
+  bar(wx+35, 93, 19,  9, 'rgba(255,255,255,0.16)');
+  bar(wx,    85, 32,  9, 'rgba(255,255,255,0.62)');
+  bar(wx+35, 85, 19,  9, 'rgba(255,255,255,0.62)');
+
+  bar(wx,    106, 24, 8, 'rgba(255,255,255,0.07)');
+  bar(wx+27, 106, 14, 8, 'rgba(255,255,255,0.07)');
+  bar(wx,     99, 24, 8, 'rgba(255,255,255,0.28)');
+  bar(wx+27,  99, 14, 8, 'rgba(255,255,255,0.28)');
+
+  const dataURL = c.toDataURL('image/png');
+  let link = document.querySelector('link[rel="apple-touch-icon"]');
+  if (!link) { link = document.createElement('link'); link.rel = 'apple-touch-icon'; document.head.appendChild(link); }
+  link.href = dataURL;
+}
+
+window.onload = () => { loadState(); loadFromURL(); updateStreak(); generateAppIcon(); };
 </script>
 <div class="tabs">
   <div class="tab active" onclick="showTab('text')"><span class="tab-icon">📝</span>Metin</div>
